@@ -1,38 +1,21 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const multipart = require("connect-multiparty");
-
-const multipartMiddleware = multipart();
+const config = require("./config.js");
 const app = express();
+const multipartMiddleware = multipart();
 
+const Mock = require("mockjs");
 // 定义mock方法
 const mock = (data,params) => {
     if(Object.prototype.toString.call(data) === "[object Object]"){
-        return data;
+        return Mock.mock(data);
     }else if(typeof data === "function"){
-        return data(params);
+        return Mock.mock(data(params));
     }else{
         return "error: data shold be an object or a function.";
     }
 }
-// mock数据
-const getUserInfo = {
-    code: 0,
-    message: "success",
-    data: {
-      name: "Alice",
-      mobile: "182xxxx9999",
-      age: 30
-    }
-}
-// 路由和数据的聚集
-const config = [
-    {
-        method: 'get',
-        url: '/api/getUserInfo',
-        data: getUserInfo
-    }
-]
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -41,7 +24,7 @@ app.use(bodyParser.json());
 config.forEach(({method,url,data}) => {
     if(method === 'get'){
         app.get(url,(req,res) => {
-            res.josn(mock(data,req.query))
+            res.json(mock(data,req.query))
         })
     } else if (method === "post") {
         app.post(url, multipartMiddleware, (req, res) => {
